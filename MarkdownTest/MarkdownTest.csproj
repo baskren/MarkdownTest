@@ -1,0 +1,76 @@
+﻿<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-windows10.0.26100;net9.0-browserwasm;net9.0-desktop</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- Display name -->
+    <ApplicationTitle>MarkdownTest</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.P42.MarkdownTest</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>MarkdownTest</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>MarkdownTest powered by Uno Platform.</Description>
+    <!--
+      If you encounter this error message:
+
+        error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
+        Please update to a newer .NET SDK in order to reference this assembly.
+
+      This means that the two packages below must be aligned with the "build" version number of
+      the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
+      must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
+    -->
+    <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
+
+    <!--
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      Lottie;
+      Toolkit;
+      MVUX;
+      ThemeService;
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Resources/**" />
+        <PackageReference Include="Markdig" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="$(TargetFramework.Contains('-windows10'))">
+        <!-- Workaround for https://github.com/unoplatform/uno/issues/18552 -->
+        <PlatformTarget Condition=" '$(PlatformTarget)' == '' AND $(Platform) == 'AnyCPU' AND '$(NETCoreSdkRuntimeIdentifier)' == 'win-x86'">x86</PlatformTarget>
+        <PlatformTarget Condition=" '$(PlatformTarget)' == '' AND $(Platform) == 'AnyCPU' AND '$(NETCoreSdkRuntimeIdentifier)' == 'win-x64'">x64</PlatformTarget>
+        <PlatformTarget Condition=" '$(PlatformTarget)' == '' AND $(Platform) == 'AnyCPU' AND '$(NETCoreSdkRuntimeIdentifier)' == 'win-arm64'">arm64</PlatformTarget>
+    </PropertyGroup>
+
+    <ItemGroup Condition="  $([MSBuild]::IsOSPlatform('windows')) AND $(TargetFramework.Contains('-desktop')) ">
+
+        <!-- DOES NOT WORK
+        <PackageReference Include="Microsoft.Web.WebView2" Aliases="WpfWebView" />
+        -->
+
+        <!-- TOGETHER, THE FOLLOWING TWO REFERENCES WORK -->
+        <Reference Include="Microsoft.Web.WebView2.Core">
+            <HintPath>$(NugetPackageRoot)microsoft.web.webview2\1.0.3179.45\lib_manual\netcoreapp3.0\Microsoft.Web.WebView2.Core.dll</HintPath>
+            <Aliases>WpfWebView</Aliases>
+        </Reference>
+
+        <Reference Include="Microsoft.Web.WebView2.Wpf">
+            <HintPath>$(NugetPackageRoot)microsoft.web.webview2\1.0.3179.45\lib_manual\net5.0-windows10.0.17763.0\Microsoft.Web.WebView2.Wpf.dll</HintPath>
+            <Aliases>WpfWebView</Aliases>
+        </Reference>
+
+
+    </ItemGroup>
+
+</Project>
