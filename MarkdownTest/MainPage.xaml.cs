@@ -17,10 +17,6 @@ public sealed partial class MainPage : Page
 
     private async void button_Click(object sender, RoutedEventArgs e)
     {
-        var markdown = (await JavaScriptControl.GetEmbeddedFileStreamAsync(this.GetType(), "markdown-it.md")).ReadToEnd();
-
-        markCtrl1.MarkdownText = markdown;
-
-        //await markCtrl1.InnerLoadJavaScriptAsync();
+        await markCtrl1.LoadMarkdownFromResource("markdown-it.md");
     }
 }

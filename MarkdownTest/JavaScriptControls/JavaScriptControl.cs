@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using Uno.Foundation;
 
-#if BROWSERWASM
+#if xBROWSERWASM
 using Uno.Foundation.Interop;
 using Uno.UI.NativeElementHosting;
 #endif
@@ -21,28 +21,26 @@ namespace MarkdownTest;
 public abstract partial class JavaScriptControl : UserControl
 {
 
-#if BROWSERWASM
-    //private readonly JSObjectHandle _handle;
-    //JSObjectHandle IJSObject.Handle => _handle;
+#if xBROWSERWASM
     private BrowserHtmlElement _element;
 #else
     private readonly WebView2 internalWebView;    
 #endif
 
-    public virtual string Style { get; }
+    public virtual string StyleSheet { get; } = string.Empty;
 
     public JavaScriptControl()
     {
-#if BROWSERWASM
-        //_handle = JSObjectHandle.Create(this);
+#if xBROWSERWASM
         _element = BrowserHtmlElement.CreateHtmlElement("div");
+        _element.SetHtmlContent(HtmlBody);
         Content = _element;
+
 #else
         Content = internalWebView = new WebView2
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
-            DefaultBackgroundColor = Colors.Pink
         };
         internalWebView.DefaultBackgroundColor = Colors.Transparent;
         internalWebView.NavigationCompleted += OnNavigationCompleted;
@@ -50,21 +48,17 @@ public abstract partial class JavaScriptControl : UserControl
         Loaded += OnJavaScriptControlLoaded;
     }
 
-    string NonWasmContentIdGuid = Guid.NewGuid().ToString();
+//#if xBROWSERWASM
+//    protected string HtmlContentId => _element.GetHtmlId();
+//#else
+    protected readonly string HtmlContentId = "content-" + Guid.NewGuid().ToString();
+//#endif
 
-    protected string HtmlContentId =>
-#if BROWSERWASM
-        _element.GetHtmlId();
-#else
-        "content-" + NonWasmContentIdGuid;
-
-    protected virtual string HtmlBody => $@"<div id = ""{HtmlContentId}""></ div>";
-#endif
-
+    protected virtual string HtmlBody => $@"<div class=""markdown-body"" id = ""{HtmlContentId}""><p>CONTENT GOES HERE</p></ div>";
 
     private async void OnJavaScriptControlLoaded(object sender, RoutedEventArgs e)
     {
-#if BROWSERWASM
+#if xBROWSERWASM
         //var script = $@"document.getElementById('{_element.GetHtmlId()}').innerHTML = '{HtmlBody}';";
         //Console.WriteLine(script);
         //await InvokeScriptAsync(script, false);
@@ -72,11 +66,10 @@ public abstract partial class JavaScriptControl : UserControl
 #else
         var html = $@"<html>
     <head>
-        <style type=""text/css"" >{Style}</style>
+        <style type=""text/css"" >{StyleSheet}</style>
     </head>
-     <body style=""background-color: green"">
+     <body>
         <div class=""markdown-body"">
-        <p>TEST TEXT</p>
          {HtmlBody}
         </div>
     </ body>
@@ -141,28 +134,50 @@ public abstract partial class JavaScriptControl : UserControl
     </ html>`
 ";
         */
-#if BROWSERWASM
-        contentScript = await InvokeScriptAsync(contentScript);
+#if xBROWSERWASM
+        //contentScript = await InvokeScriptAsync(contentScript);
+
+        
+        contentScript = $"`{contentScript.Trim()}`";
 
 
+        /*
+        contentScript = $@"`
+<html>
+    <body style=""background-color: green"">
+        <p>TEST TEXT</p>
+        <div class=""markdown-body"">
+            {contentScript}
+        </div>
+    </ body>
+</ html>`
+";
+        */
+        
         contentScript = $@"`<html>
+    <head>
+        <style type=""text/css"" >{StyleSheet}</style>
+    </head>
      <body>
+        <div class=""markdown-body"">
          {contentScript}
+        </div>
     </ body>
     </ html>`
 ";
+        
 #else
 #endif
-
         var script = $@"document.getElementById('{HtmlContentId}').innerHTML = {contentScript};";
         await InvokeScriptAsync(script);
+
     }
 
     public async Task<string> InvokeScriptAsync(string scriptToRun, bool resizeAfterScript = true)
     {
         //scriptToRun = ReplaceLiterals(scriptToRun);
 
-#if BROWSERWASM
+#if xBROWSERWASM
         //scriptToRun = ReplaceLiterals(scriptToRun);
         //var script = $"javascript:eval(\"{scriptToRun}\");";
         var script = scriptToRun;
@@ -231,7 +246,7 @@ public abstract partial class JavaScriptControl : UserControl
             false);
         int height;
         if (int.TryParse(heightString, out height))
-            this.Height = height;
+            this.Height = height + 100;
 
     }
 

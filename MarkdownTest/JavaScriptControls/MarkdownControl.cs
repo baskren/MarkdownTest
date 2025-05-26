@@ -18,7 +18,7 @@ public partial class MarkedControl : JavaScriptControl
         .UseAdvancedExtensions()
         .UseEmojiAndSmiley()
         .UseAutoLinks()
-        .UseBootstrap()
+        //.UseBootstrap()
         //.UseGenericAttributes()
         .UseListExtras()
         //.UsePragmaLines()
@@ -34,17 +34,8 @@ public partial class MarkedControl : JavaScriptControl
         set { SetValue(MarkdownTextProperty, value); }
     }
 
-    string _style;
-    public override string Style
-    {
-        get 
-        { 
-            if (!string.IsNullOrEmpty(_style)) return _style;
-
-            _style = Task.Run(async () => (await GetEmbeddedFileStreamAsync(GetType(), "github-markdown.css")).ReadToEnd()).Result;
-            return _style; 
-        }
-    }
+    string? _style;
+    public override string StyleSheet => _style!;
 
     // Using a DependencyProperty as the backing store for MarkdownText.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty MarkdownTextProperty =
@@ -57,10 +48,17 @@ public partial class MarkedControl : JavaScriptControl
 
     private async Task DisplayMarkdownText()
     {
+        await LoadStyleSheetAsync();
+
         if (IsMarkedReady && !string.IsNullOrWhiteSpace(MarkdownText))
         {
             await DisplayMarkdown(MarkdownText);
         }
+    }
+
+    async Task LoadStyleSheetAsync()
+    {
+        _style ??= (await GetEmbeddedFileStreamAsync(GetType(), "github-markdown.css")).ReadToEnd();
     }
 
     public string MarkedEmbeddedJavaScriptFile { get; set; } = "Resources.marked.min.js";
@@ -72,7 +70,7 @@ public partial class MarkedControl : JavaScriptControl
 
     public async Task InnerLoadJavaScriptAsync()
     {
-#if !BROWSERWASM
+#if !xBROWSERWASM
         // use Platforms/WebAssembly/WasmScripts, instead
         // await LoadEmbeddedJavaScriptFile(MarkedEmbeddedJavaScriptFile);
         // Using MarkDig instead!
@@ -87,14 +85,17 @@ public partial class MarkedControl : JavaScriptControl
 
     public async Task DisplayMarkdown(string markdown)
     {
-        var html = Markdig.Markdown.ToHtml(markdown, pipeline);
-        html = html.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"").Replace("\'", "\\\'");//.Replace("\t","\\t").Replace("`","");
         System.Diagnostics.Debug.WriteLine(markdown);
-        //await UpdateHtmlFromScript($"marked('{markdown}')");
+        var html = Markdig.Markdown.ToHtml(markdown, pipeline);
+#if xBROWSERWASM
+        await UpdateHtmlFromScript(html);
+#else
+        html = html.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\"", "\\\"").Replace("\'", "\\\'");//.Replace("\t","\\t").Replace("`","");
         await UpdateHtmlFromScript($"`{html}`");
+#endif
     }
 
-    public async Task LoadMarkdownFromFile(string embeddedFileName)
+    public async Task LoadMarkdownFromResource(string embeddedFileName)
     {
         var markdown = (await GetEmbeddedFileStreamAsync(GetType(), embeddedFileName)).ReadToEnd();
         await DisplayMarkdown(markdown);
