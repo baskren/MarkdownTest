@@ -56,7 +56,7 @@ public abstract partial class JavaScriptControl : UserControl
 
     protected virtual string HtmlBody => $@"<div class=""markdown-body"" id = ""{HtmlContentId}""><p>CONTENT GOES HERE</p></ div>";
 
-    private async void OnJavaScriptControlLoaded(object sender, RoutedEventArgs e)
+    protected virtual async void OnJavaScriptControlLoaded(object sender, RoutedEventArgs e)
     {
 #if xBROWSERWASM
         //var script = $@"document.getElementById('{_element.GetHtmlId()}').innerHTML = '{HtmlBody}';";

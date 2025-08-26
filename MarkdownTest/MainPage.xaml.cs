@@ -17,6 +17,6 @@ public sealed partial class MainPage : Page
 
     private async void button_Click(object sender, RoutedEventArgs e)
     {
-        await markCtrl1.LoadMarkdownFromResource("markdown-it.md");
+        //await markCtrl1.LoadMarkdownFromResource("markdown-it.md");
     }
 }

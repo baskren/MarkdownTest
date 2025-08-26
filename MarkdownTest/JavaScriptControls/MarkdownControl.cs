@@ -18,14 +18,7 @@ public partial class MarkedControl : JavaScriptControl
         .UseAdvancedExtensions()
         .UseEmojiAndSmiley()
         .UseAutoLinks()
-        //.UseBootstrap()
-        //.UseGenericAttributes()
         .UseListExtras()
-        //.UsePragmaLines()
-        //.UseReferralLinks()
-        //.UseSelfPipeline()
-        //.UseSmartyPants()
-        //.UseYamlFrontMatter()
         .Build();
 
     public string MarkdownText
@@ -48,12 +41,16 @@ public partial class MarkedControl : JavaScriptControl
 
     private async Task DisplayMarkdownText()
     {
-        await LoadStyleSheetAsync();
-
         if (IsMarkedReady && !string.IsNullOrWhiteSpace(MarkdownText))
         {
             await DisplayMarkdown(MarkdownText);
         }
+    }
+
+    protected override async void OnJavaScriptControlLoaded(object sender, RoutedEventArgs e)
+    {
+        await LoadStyleSheetAsync();
+        base.OnJavaScriptControlLoaded(sender, e);
     }
 
     async Task LoadStyleSheetAsync()
@@ -70,6 +67,7 @@ public partial class MarkedControl : JavaScriptControl
 
     public async Task InnerLoadJavaScriptAsync()
     {
+
 #if !xBROWSERWASM
         // use Platforms/WebAssembly/WasmScripts, instead
         // await LoadEmbeddedJavaScriptFile(MarkedEmbeddedJavaScriptFile);
@@ -85,6 +83,7 @@ public partial class MarkedControl : JavaScriptControl
 
     public async Task DisplayMarkdown(string markdown)
     {
+
         System.Diagnostics.Debug.WriteLine(markdown);
         var html = Markdig.Markdown.ToHtml(markdown, pipeline);
 #if xBROWSERWASM

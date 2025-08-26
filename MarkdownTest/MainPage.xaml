@@ -9,7 +9,10 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <!--
         <local:MarkedControl  x:Name="markCtrl1" MarkdownText="# Here is a cheat sheet: B"  />
+        -->
+        <local:PdfControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Button x:Name="button" Grid.Column="1" Content="LOAD" Click="button_Click"/>
         <!--<ScrollViewer>-->
         <!--
